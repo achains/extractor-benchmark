@@ -1,0 +1,12 @@
+find_package(OpenCV COMPONENTS core highgui imgproc imgcodecs QUIET)
+if(NOT OpenCV_FOUND)
+    find_package(OpenCV REQUIRED)
+endif()
+find_package(PCL COMPONENTS io REQUIRED)
+
+add_library(peac INTERFACE)
+target_include_directories(peac INTERFACE include)
+target_include_directories(peac INTERFACE ${PCL_INCLUDE_DIRS})
+target_link_directories(peac INTERFACE ${PCL_LIBRARY_DIRS})
+target_link_libraries(peac INTERFACE ${OpenCV_LIBS})
+target_compile_definitions(peac INTERFACE ${PCL_DEFINITIONS})

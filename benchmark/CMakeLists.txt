@@ -1,6 +1,21 @@
 #####################################
 # Config variables
 #####################################
+
+set(DATA_DIR ${CMAKE_SOURCE_DIR}/data)
+
+if (NOT EXISTS ${DATASET_NAME})
+    set(DATASET_NAME "${DATA_DIR}/tum/long_office")
+endif()
+
+set(CAPE_CAMERA_INTRINSICS "${DATASET_NAME}/cape.xml")
+set(PEAC_CAMERA_INTRINSICS "${DATASET_NAME}/intrinsics.K")
+set(DEPLEX_CAMERA_INTRINSICS "${DATASET_NAME}/intrinsics.K")
+
+set(CAPE_CONFIG "${DATASET_NAME}/cape.ini")
+set(PEAC_CONFIG "${DATASET_NAME}/peac.ini")
+set(DEPLEX_CONFIG "${DATASET_NAME}/deplex.ini")
+
 configure_file(config.h.in config.h)
 
 #####################################

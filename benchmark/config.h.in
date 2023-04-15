@@ -1,0 +1,13 @@
+#pragma once
+
+namespace benchmark_config{
+    constexpr const char* image_dir = "${IMAGE_DIR}";
+
+    constexpr const char* cape_intrinsics = "${CAPE_CAMERA_INTRINSICS}";
+    constexpr const char* peac_intrinsics = "${PEAC_CAMERA_INTRINSICS}";
+    constexpr const char* deplex_intrinsics = "${DEPLEX_CAMERA_INTRINSICS}";
+
+    constexpr const char* cape_config = "${CAPE_CONFIG}";
+    constexpr const char* peac_config = "${PEAC_CONFIG}";
+    constexpr const char* deplex_config = "${DEPLEX_CONFIG}";
+}

@@ -16,6 +16,8 @@
 #include <string>
 #include "CAPE.h"
 
+#include "config.h"
+
 using namespace std;
 
 bool done = false;
@@ -98,14 +100,14 @@ void organizePointCloudByCell(Eigen::MatrixXf& cloud_in, Eigen::MatrixXf& cloud_
 }
 
 int main(int argc, char** argv) {
-  stringstream input_path;
-  stringstream params_path;
-  stringstream data_dir;
+  stringstream input_path(benchmark_config::image_dir);
+  stringstream params_path(benchmark_config::cape_config);
+  stringstream calib_path(benchmark_config::cape_intrinsics);
+
 
   if (argc > 2) {
     input_path << argv[1];
     params_path << argv[2];
-    data_dir << argv[3];
   }
   // Get parameters
   if (params_path.str().empty()) {
@@ -116,8 +118,6 @@ int main(int argc, char** argv) {
 
   // Get intrinsics
   cv::Mat K_rgb, K_ir, dist_coeffs_rgb, dist_coeffs_ir, R_stereo, t_stereo;
-  stringstream calib_path;
-  calib_path << input_path.str() << "/calib_params.xml";
   loadCalibParameters(calib_path.str(), K_rgb, dist_coeffs_rgb, K_ir, dist_coeffs_ir, R_stereo, t_stereo);
   float fx_ir = K_ir.at<double>(0, 0);
   float fy_ir = K_ir.at<double>(1, 1);
@@ -130,7 +130,7 @@ int main(int argc, char** argv) {
 
   // ============= INPUT DATA SORTING =============
   std::vector<std::filesystem::directory_entry> sorted_input_data;
-  for (auto const& entry : std::filesystem::directory_iterator(data_dir.str())) {
+  for (auto const& entry : std::filesystem::directory_iterator(input_path.str())) {
     sorted_input_data.push_back(entry);
   }
   sort(sorted_input_data.begin(), sorted_input_data.end());
@@ -245,13 +245,13 @@ int main(int argc, char** argv) {
       //            cout<<"Frame: "<<i<<endl;
 
       // Read depth image
-      depth_img_path.str("");
-      depth_img_path << input_path.str() << "/depth_" << i << ".png";
-
-      d_img = cv::imread(depth_img_path.str(), cv::IMREAD_ANYDEPTH);
-      d_img.convertTo(d_img, CV_32F);
+//      depth_img_path.str("");
+//      depth_img_path << input_path.str() << "/depth_" << i << ".png";
 
       auto START_TIME = std::chrono::high_resolution_clock::now();
+
+      d_img = cv::imread(entry.path().string(), cv::IMREAD_ANYDEPTH);
+      d_img.convertTo(d_img, CV_32F);
 
       // Backproject to point cloud
       X = X_pre.mul(d_img);
@@ -273,59 +273,8 @@ int main(int argc, char** argv) {
       auto FINISH_TIME = std::chrono::high_resolution_clock::now();
       time_vector.emplace_back(std::chrono::duration_cast<std::chrono::microseconds>(FINISH_TIME - START_TIME).count());
       std::cout << "Processed image: " << entry.path().filename() << " with time: " << time_vector.back() << '\n';
-
-      /* Uncomment this block to print model params
-      for(int p_id=0; p_id<nr_planes;p_id++){
-          cout<<"[Plane #"<<p_id<<"] with ";
-          cout<<"normal: ("<<plane_params[p_id].normal[0]<<" "<<plane_params[p_id].normal[1]<<"
-      "<<plane_params[p_id].normal[2]<<"), "; cout<<"d: "<<plane_params[p_id].d<<endl;
-      }
-
-      for(int c_id=0; c_id<nr_cylinders;c_id++){
-          cout<<"[Cylinder #"<<c_id<<"] with ";
-          cout<<"axis: ("<<cylinder_params[c_id].axis[0]<<" "<<cylinder_params[c_id].axis[1]<<"
-      "<<cylinder_params[c_id].axis[2]<<"), "; cout<<"center: ("<<cylinder_params[c_id].centers[0].transpose()<<"), ";
-          cout<<"radius: "<<cylinder_params[c_id].radii[0]<<endl;
-      }
-      */
-
-      //        labels_save_path.str("");
-      //        labels_save_path << "output/labels_" << i << ".csv";
-      //        writeLabelsTable(labels_save_path.str(), height, width, seg_output);
-
-      //            if (save_image) {
-      //                // Map segments with color codes and overlap segmented image w/ RGB
-      //                uchar * sCode;
-      //                uchar * dColor;
-      //
-      //                int code;
-      //                for(int r=0; r<  height; r++){
-      //                  dColor = seg_rz.ptr<uchar>(r);
-      //                  sCode = seg_output.ptr<uchar>(r);
-      //
-      //                  for(int c=0; c< width; c++){
-      //                    code = *sCode;
-      //                    if (code>0){
-      //                      dColor[c*3] =   color_code[code-1][0]/2 ;
-      //                      dColor[c*3+1] = color_code[code-1][1]/2 ;
-      //                      dColor[c*3+2] = color_code[code-1][2]/2 ;
-      //                    }
-      //                    sCode++;
-      //                  }
-      //                }
-      //
-      //                image_save_path.str("");
-      //                image_save_path << "output/segment_" << i << ".png";
-      //                cv::imwrite(image_save_path.str(), seg_rz);
-      //            }
-      //            if (show_visualization) {
-      //                cv::namedWindow("Seg");
-      //                cv::imshow("Seg", seg_rz);
-      //                cv::waitKey(1);
-      //            }
       i++;
     }
-    if (time_vector.size() > 100) break;
   }
   std::cout << "Mean: " << std::reduce(time_vector.begin(), time_vector.end()) / time_vector.size() << '\n';
   std::cout << "Min: " << *std::min_element(time_vector.begin(), time_vector.end()) << '\n';

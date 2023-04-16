@@ -33,6 +33,17 @@ target_compile_options(cape_benchmark PRIVATE -O3)
 target_include_directories(cape_benchmark SYSTEM PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
 #####################################
+# PEAC Benchmark
+#####################################
+add_executable(peac_benchmark peac_benchmark.cpp)
+
+target_link_libraries(peac_benchmark PRIVATE peac)
+# Needed for image utils
+target_link_libraries(peac_benchmark PRIVATE deplex)
+target_compile_options(peac_benchmark PRIVATE -O3 -fpermissive)
+target_include_directories(peac_benchmark SYSTEM PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+
+#####################################
 # deplex Benchmark
 #####################################
 add_executable(deplex_benchmark deplex_benchmark.cpp)

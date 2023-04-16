@@ -8,7 +8,7 @@
 #include <iostream>
 #include <iterator>
 
-void process() {
+void process(int max_frames) {
   // Sort data entries
   std::vector<std::filesystem::directory_entry> sorted_input_data;
   for (auto const& entry : std::filesystem::directory_iterator(benchmark_config::image_dir)) {
@@ -28,6 +28,9 @@ void process() {
 #ifdef BENCHMARK_VERBOSE
     std::cout << "Processed image: " << entry.path().filename() << " with time: " << time_vector.back() << '\n';
 #endif
+    if (time_vector.size() == max_frames) {
+      break;
+    }
   }
 
   // Output
@@ -35,7 +38,11 @@ void process() {
   std::copy(time_vector.begin(), time_vector.end(), std::ostream_iterator<size_t>(output, ","));
 }
 
-int main() {
-  process();
+int main(int argc, char* argv[]) {
+  int max_frames = -1;
+  if (argc > 1) {
+    max_frames = std::stoi(argv[1]);
+  }
+  process(max_frames);
   return 0;
 }

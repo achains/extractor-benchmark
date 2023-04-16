@@ -66,7 +66,7 @@ struct OrganizedImage3D {
     x = pt.x * unitScaleFactor;
     y = pt.y * unitScaleFactor;
     z = pt.z * unitScaleFactor;  // TODO: will this slowdown the speed?
-    return z == 0;    // return false if current depth is NaN
+    return z == 0;               // return false if current depth is NaN
   }
 };
 
@@ -198,7 +198,7 @@ void processOneFrame(pcl::PointCloud<pcl::PointXYZ>& cloud, const std::string& o
   pf.run(&Ixyz, 0, &seg, 0, false);
 }
 
-int process() {
+int process(int max_frames) {
   const auto unitScaleFactor = global::iniGet<double>("unitScaleFactor", 1.0f);
 
   using global::pf;
@@ -265,6 +265,9 @@ int process() {
 #ifdef BENCHMARK_VERBOSE
     std::cout << "Processed image: " << entry.path().filename() << " with time: " << time_vector.back() << '\n';
 #endif
+    if (time_vector.size() == max_frames) {
+      break;
+    }
   }
 
   // Output
@@ -275,6 +278,10 @@ int process() {
 }
 
 int main(const int argc, const char** argv) {
+  int max_frames = -1;
+  if (argc > 1) {
+    max_frames = std::stoi(argv[1]);
+  }
   global::iniLoad(benchmark_config::peac_config);
-  return process();
+  return process(max_frames);
 }

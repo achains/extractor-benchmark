@@ -13,6 +13,11 @@ if (NOT EXISTS ${OUTPUT_DIR})
     file(MAKE_DIRECTORY ${OUTPUT_DIR})
 endif()
 
+option(BENCHMARK_VERBOSE OFF)
+if (${BENCHMARK_VERBOSE})
+    add_compile_definitions(BENCHMARK_VERBOSE)
+endif()
+
 set(CAPE_CAMERA_INTRINSICS "${DATASET_NAME}/cape.xml")
 set(PEAC_CAMERA_INTRINSICS "${DATASET_NAME}/intrinsics.K")
 set(DEPLEX_CAMERA_INTRINSICS "${DATASET_NAME}/intrinsics.K")

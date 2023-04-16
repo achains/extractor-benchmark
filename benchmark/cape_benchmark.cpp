@@ -101,6 +101,10 @@ void organizePointCloudByCell(Eigen::MatrixXf& cloud_in, Eigen::MatrixXf& cloud_
 }
 
 int main(int argc, char** argv) {
+  int max_frames = -1;
+  if (argc > 1) {
+    max_frames = std::stoi(argv[1]);
+  }
   stringstream input_path(benchmark_config::image_dir);
   stringstream params_path(benchmark_config::cape_config);
   stringstream calib_path(benchmark_config::cape_intrinsics);
@@ -239,36 +243,34 @@ int main(int argc, char** argv) {
     // Initialize CAPE
     plane_detector = new CAPE(height, width, PATCH_SIZE, PATCH_SIZE, cylinder_detection, COS_ANGLE_MAX, MAX_MERGE_DIST);
 
-    int i = 0;
-    while (i < frame_num) {
-      auto START_TIME = std::chrono::high_resolution_clock::now();
+    auto START_TIME = std::chrono::high_resolution_clock::now();
 
-      d_img = cv::imread(entry.path().string(), cv::IMREAD_ANYDEPTH);
-      d_img.convertTo(d_img, CV_32F);
+    d_img = cv::imread(entry.path().string(), cv::IMREAD_ANYDEPTH);
+    d_img.convertTo(d_img, CV_32F);
 
-      // Backproject to point cloud
-      X = X_pre.mul(d_img);
-      Y = Y_pre.mul(d_img);
-      cloud_array.setZero();
+    // Backproject to point cloud
+    X = X_pre.mul(d_img);
+    Y = Y_pre.mul(d_img);
+    cloud_array.setZero();
 
-      projectPointCloud(X, Y, d_img, U, V, fx_rgb, fy_rgb, cx_rgb, cy_rgb, t_stereo.at<double>(2), cloud_array);
+    projectPointCloud(X, Y, d_img, U, V, fx_rgb, fy_rgb, cx_rgb, cy_rgb, t_stereo.at<double>(2), cloud_array);
 
-      cv::Mat_<cv::Vec3b> seg_rz = cv::Mat_<cv::Vec3b>(height, width, cv::Vec3b(0, 0, 0));
-      cv::Mat_<uchar> seg_output = cv::Mat_<uchar>(height, width, uchar(0));
+    cv::Mat_<cv::Vec3b> seg_rz = cv::Mat_<cv::Vec3b>(height, width, cv::Vec3b(0, 0, 0));
+    cv::Mat_<uchar> seg_output = cv::Mat_<uchar>(height, width, uchar(0));
 
-      // Run CAPE
-      int nr_planes, nr_cylinders;
-      vector<PlaneSeg> plane_params;
-      vector<CylinderSeg> cylinder_params;
-      organizePointCloudByCell(cloud_array, cloud_array_organized, cell_map);
-      plane_detector->process(cloud_array_organized, nr_planes, nr_cylinders, seg_output, plane_params,
-                              cylinder_params);
-      auto FINISH_TIME = std::chrono::high_resolution_clock::now();
-      time_vector.emplace_back(std::chrono::duration_cast<std::chrono::microseconds>(FINISH_TIME - START_TIME).count());
+    // Run CAPE
+    int nr_planes, nr_cylinders;
+    vector<PlaneSeg> plane_params;
+    vector<CylinderSeg> cylinder_params;
+    organizePointCloudByCell(cloud_array, cloud_array_organized, cell_map);
+    plane_detector->process(cloud_array_organized, nr_planes, nr_cylinders, seg_output, plane_params, cylinder_params);
+    auto FINISH_TIME = std::chrono::high_resolution_clock::now();
+    time_vector.emplace_back(std::chrono::duration_cast<std::chrono::microseconds>(FINISH_TIME - START_TIME).count());
 #ifdef BENCHMARK_VERBOSE
-      std::cout << "Processed image: " << entry.path().filename() << " with time: " << time_vector.back() << '\n';
+    std::cout << "Processed image: " << entry.path().filename() << " with time: " << time_vector.back() << '\n';
 #endif
-      i++;
+    if (time_vector.size() == max_frames) {
+      break;
     }
   }
   // Output

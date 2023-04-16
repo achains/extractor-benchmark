@@ -8,6 +8,11 @@ if (NOT EXISTS ${DATASET_NAME})
     set(DATASET_NAME "${DATA_DIR}/tum/long_office")
 endif()
 
+if (NOT EXISTS ${OUTPUT_DIR})
+    set(OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/output)
+    file(MAKE_DIRECTORY ${OUTPUT_DIR})
+endif()
+
 set(CAPE_CAMERA_INTRINSICS "${DATASET_NAME}/cape.xml")
 set(PEAC_CAMERA_INTRINSICS "${DATASET_NAME}/intrinsics.K")
 set(DEPLEX_CAMERA_INTRINSICS "${DATASET_NAME}/intrinsics.K")

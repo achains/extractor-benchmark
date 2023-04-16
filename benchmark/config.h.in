@@ -2,6 +2,7 @@
 
 namespace benchmark_config{
     constexpr const char* image_dir = "${IMAGE_DIR}";
+    constexpr const char* output_dir = "${OUTPUT_DIR}";
 
     constexpr const char* cape_intrinsics = "${CAPE_CAMERA_INTRINSICS}";
     constexpr const char* peac_intrinsics = "${PEAC_CAMERA_INTRINSICS}";

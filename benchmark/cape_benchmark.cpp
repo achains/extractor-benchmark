@@ -12,6 +12,7 @@
 #include <math.h>
 #include <Eigen/Dense>
 #include <boost/algorithm/string.hpp>
+#include <iterator>
 #include <opencv2/opencv.hpp>
 #include <string>
 #include "CAPE.h"
@@ -103,7 +104,6 @@ int main(int argc, char** argv) {
   stringstream input_path(benchmark_config::image_dir);
   stringstream params_path(benchmark_config::cape_config);
   stringstream calib_path(benchmark_config::cape_intrinsics);
-
 
   if (argc > 2) {
     input_path << argv[1];
@@ -241,13 +241,6 @@ int main(int argc, char** argv) {
 
     int i = 0;
     while (i < frame_num) {
-      // Read frame i
-      //            cout<<"Frame: "<<i<<endl;
-
-      // Read depth image
-//      depth_img_path.str("");
-//      depth_img_path << input_path.str() << "/depth_" << i << ".png";
-
       auto START_TIME = std::chrono::high_resolution_clock::now();
 
       d_img = cv::imread(entry.path().string(), cv::IMREAD_ANYDEPTH);
@@ -272,13 +265,15 @@ int main(int argc, char** argv) {
                               cylinder_params);
       auto FINISH_TIME = std::chrono::high_resolution_clock::now();
       time_vector.emplace_back(std::chrono::duration_cast<std::chrono::microseconds>(FINISH_TIME - START_TIME).count());
+#ifdef BENCHMARK_VERBOSE
       std::cout << "Processed image: " << entry.path().filename() << " with time: " << time_vector.back() << '\n';
+#endif
       i++;
     }
   }
-  std::cout << "Mean: " << std::reduce(time_vector.begin(), time_vector.end()) / time_vector.size() << '\n';
-  std::cout << "Min: " << *std::min_element(time_vector.begin(), time_vector.end()) << '\n';
-  std::cout << "Max: " << *std::max_element(time_vector.begin(), time_vector.end()) << '\n';
+  // Output
+  std::ofstream output(std::string(benchmark_config::output_dir) + "/cape_benchmark.txt");
+  std::copy(time_vector.begin(), time_vector.end(), std::ostream_iterator<size_t>(output, ","));
 
   return 0;
 }

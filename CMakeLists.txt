@@ -4,4 +4,5 @@ project(extractor-benchmark LANGUAGES CXX DESCRIPTION "Library for Depth Plane E
 
 add_subdirectory(external)
 add_subdirectory(libs)
+add_subdirectory(src)
 add_subdirectory(benchmark)
